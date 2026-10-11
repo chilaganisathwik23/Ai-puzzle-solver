@@ -110,33 +110,30 @@ def BFS(start,goal):
      #DFS
 #-----------------------------------------------------------------------------        
 
-def DFS(start,goal):
-    visited=[]
-    stack=[]
-    stack.append(start)
-    paths=[[start]]
-    while stack:
-        current=stack.pop()
-        current_path=paths.pop()
-        
-        if current==goal:
-            return current_path
-        
-        if current not in visited:
-            visited.append(current)
-            neighbours=get_neighbours(current)
+def DFS(start, goal):
+    visited = set()
+    stack = [(start, [start])]
 
-            added=False
-            
+    while stack:
+        current, current_path = stack.pop()
+
+        if current == goal:
+            return current_path
+
+        current_key = tuple(current)
+
+        if current_key not in visited:
+            visited.add(current_key)
+
+            neighbours = get_neighbours(current)
+
             for nextstate in reversed(neighbours):
-                if nextstate not in visited:
-                    stack.append(nextstate)
-                    newpath=current_path+[nextstate]
-                    paths.append(newpath)
-                    
-                
+                if tuple(nextstate) not in visited:
+                    newpath = current_path + [nextstate]
+                    stack.append((nextstate, newpath))
 
     return None
+
 
 #-----------------------------------------------------------------------------
      #Greedy best first search
@@ -360,6 +357,27 @@ def valid_state(state):
      return True
 
 
+#----------------------------------------------------------------------------
+     #checking it is solavable or not
+#----------------------------------------------------------------------------
+
+def is_solvable(start, goal):
+    start_tiles = [n for n in start if n != 0]
+    goal_tiles = [n for n in goal if n != 0]
+
+    start_inversions = 0
+    goal_inversions = 0
+
+    for i in range(8):
+        for j in range(i + 1, 8):
+            if start_tiles[i] > start_tiles[j]:
+                start_inversions += 1
+
+            if goal_tiles[i] > goal_tiles[j]:
+                goal_inversions += 1
+
+    return start_inversions % 2 == goal_inversions % 2
+
 
 #----------------------------------------------------------------------------
      #dispaly
@@ -578,6 +596,18 @@ def main(page):
            return
 
         selected=algorithm.value
+
+        
+        if not is_solvable(start, goal):
+            result_area.controls.clear()
+            result_area.controls.append(
+                ft.Text(
+                    "This puzzle cannot reach the selected goal state.",
+                    size=18
+                )
+            )
+            result_area.update()
+            return
 
 
         #run selected algo
